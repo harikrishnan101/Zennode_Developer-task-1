@@ -11,9 +11,90 @@
         <h1>Product Catalog</h1>
         <div id="productDetails"></div>
     </div>
-
     <script>
-        
+        function calculateDiscount(cartTotal, productQuantities) {
+            let discountAmount = 0;
+
+            if (cartTotal > 200) {
+                discountAmount = Math.min(discountAmount, 10);
+            }
+
+            for (const quantity of productQuantities) {
+                if (quantity > 10) {
+                    discountAmount = Math.min(discountAmount, 0.05);
+                    break;
+                }
+            }
+
+            if (productQuantities.reduce((sum, quantity) => sum + quantity, 0) > 20) {
+                discountAmount = Math.min(discountAmount, 0.10);
+            }
+
+            if (productQuantities.reduce((sum, quantity) => sum + quantity, 0) > 30) {
+                const maxQuantity = Math.max(...productQuantities);
+                if (maxQuantity > 15) {
+                    discountAmount = Math.min(discountAmount, 0.50);
+                }
+            }
+
+            return discountAmount;
+        }
+
+        function calculateTotal(productQuantities, productPrices, giftWrap) {
+            const cartTotal = productQuantities.reduce((sum, quantity, index) => sum + quantity * productPrices[index], 0);
+            const discountAmount = calculateDiscount(cartTotal, productQuantities);
+            const subtotal = cartTotal - (cartTotal * discountAmount);
+
+            const shippingFee = Math.ceil(productQuantities.reduce((sum, quantity) => sum + quantity, 0) / 10) * 5;
+            const giftWrapFee = giftWrap ? productQuantities.reduce((sum, quantity) => sum + quantity, 0) : 0;
+
+            const total = subtotal + shippingFee + giftWrapFee;
+
+            return {
+                cartTotal,
+                subtotal,
+                discountName: discountAmount > 0 ? "Best Discount Applied" : "No Discount Applied",
+                discountAmount: discountAmount * 100 + "%",
+                shippingFee,
+                giftWrapFee,
+                total
+            };
+        }
+
+        function displayOrderDetails() {
+            const productNames = ["Product A", "Product B", "Product C"];
+            const productPrices = [20, 40, 50];
+            const productQuantities = [];
+            let giftWrapTotal = 0;
+
+            for (const productName of productNames) {
+                const quantity = parseInt(prompt(`Enter the quantity of ${productName}:`), 10) || 0;
+                productQuantities.push(quantity);
+
+                const isGiftWrapped = confirm(`Is ${productName} wrapped as a gift?`);
+                if (isGiftWrapped) {
+                    giftWrapTotal += quantity;
+                }
+            }
+
+            const result = calculateTotal(productQuantities, productPrices, giftWrapTotal > 0);
+
+            const productDetailsDiv = document.getElementById("productDetails");
+            productDetailsDiv.innerHTML = "<h2>Order Details</h2>";
+
+            for (let i = 0; i < productNames.length; i++) {
+                productDetailsDiv.innerHTML += `<p>${productNames[i]} - Quantity: ${productQuantities[i]}, Total: $${productQuantities[i] * productPrices[i]}</p>`;
+            }
+
+            productDetailsDiv.innerHTML += `<p><strong>Subtotal:</strong> $${result.subtotal.toFixed(2)}</p>`;
+            productDetailsDiv.innerHTML += `<p><strong>Discount Applied:</strong> ${result.discountName} - ${result.discountAmount}</p>`;
+            productDetailsDiv.innerHTML += `<p><strong>Shipping Fee:</strong> $${result.shippingFee}</p>`;
+            productDetailsDiv.innerHTML += `<p><strong>Gift Wrap Fee:</strong> $${result.giftWrapFee}</p>`;
+            productDetailsDiv.innerHTML += `<p><strong>Total:</strong> $${result.total.toFixed(2)}</p>`;
+        }
+
+        // Run the program when the page loads
+        displayOrderDetails();
     </script>
-    </body>
-    </html>
+</body>
+</html>
